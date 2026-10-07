@@ -1,40 +1,34 @@
-# Testes automatizados de API
+# ATS10 — Testes Automatizados de API
 
-Projeto de exemplo para automação de testes de APIs com Python, `pytest`,
-Tavern, HTTPX e FastAPI, que faz parte da disciplina de **Automação de Testes de Software**.
+Conjunto de testes automatizados em Python para validar um fluxo com Tavern e um cenário assíncrono de performance com FastAPI e HTTPX.
 
-## O que é testado
+O enunciado está em [assets/Exercício ATS10.pdf](assets/Exercício%20ATS10.pdf).
 
-### Fluxo de tarefas com Tavern
+## Ambiente
 
-O arquivo `test_fluxo_todos.tavern.yaml` testa a API pública
-[JSONPlaceholder](https://jsonplaceholder.typicode.com):
+Lembrando..
 
-1. Busca os To-Dos com os IDs `1`, `5` e `15`.
-2. Verifica se cada resposta retorna status HTTP `200`.
-3. Salva o `userId` da tarefa encontrada.
-4. Usa o `userId` salvo para buscar as tarefas do usuário.
-5. Valida, por meio de `utils.validar_lista_tarefas`, se a resposta é uma
-   lista e se pelo menos uma tarefa possui a chave `completed`.
+```bash
+python -m venv .venv
+```
 
-### Performance assíncrona
+No Linux/macOS:
 
-O arquivo `test_performance.py` testa o endpoint `/processar` da aplicação
-FastAPI definida em `api_pagamentos.py`.
+```bash
+source .venv/bin/activate
+```
 
-O teste dispara simultaneamente `5`, `20` e `50` requisições usando
-`asyncio.gather` e `httpx.ASGITransport`. Todas as respostas devem retornar
-status `200`, e cada execução deve terminar em menos de `3,5` segundos.
+No Windows:
 
-O teste usa `ASGITransport`, portanto a aplicação é executada diretamente em
-memória e não é necessário iniciar um servidor Uvicorn.
+```bash
+.venv\Scripts\activate
+```
 
-## Requisitos
+```bash
+python -m pip install -r requirements.txt
+```
 
-- Python 3.9 ou superior
-- Acesso à internet para os testes do JSONPlaceholder
-
-As dependências estão listadas em `requirements.txt`:
+As dependências do projeto são:
 
 - `fastapi`
 - `httpx`
@@ -42,74 +36,75 @@ As dependências estão listadas em `requirements.txt`:
 - `pytest`
 - `pytest-asyncio`
 
-## Instalação
+## Execução
 
-Recomenda-se criar um ambiente virtual:
-
-```bash
-python -m venv .venv
-```
-
-Ative o ambiente virtual:
-
-### Windows PowerShell
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-### Linux ou macOS
-
-```bash
-source .venv/bin/activate
-```
-
-Instale as dependências:
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-## Execução dos testes
-
-Execute toda a suíte:
+Na raiz do projeto, com o ambiente ativo:
 
 ```bash
 python -m pytest
 ```
 
-Execute apenas o teste de performance:
+Esse comando executa toda a suíte, incluindo o fluxo do Tavern e o teste assíncrono da API local.
 
-```bash
-python -m pytest test_performance.py
-```
-
-Execute apenas o fluxo do Tavern:
+Se quiser rodar apenas o fluxo do Tavern:
 
 ```bash
 python -m pytest test_fluxo_todos.tavern.yaml
 ```
 
+Se quiser rodar apenas o teste de performance:
+
+```bash
+python -m pytest test_perfomance.py
+```
+
+## O que os testes fazem
+
+### Fluxo com Tavern
+
+O arquivo `test_fluxo_todos.tavern.yaml` valida a API pública [JSONPlaceholder](https://jsonplaceholder.typicode.com) em duas etapas:
+
+1. Busca os To-Dos com os IDs `1`, `5` e `15`.
+2. Confere se cada resposta volta com status HTTP `200`.
+3. Salva o `userId` retornado na primeira consulta.
+4. Usa esse `userId` para consultar todas as tarefas do mesmo usuário.
+5. Delega a validação da estrutura para `utils.validar_lista_tarefas`, que confirma se o retorno é uma lista e se existe ao menos uma tarefa com a chave `completed`.
+
+### Performance assíncrona
+
+O arquivo `test_perfomance.py` valida o endpoint `/processar` da aplicação FastAPI definida em `api_pagamentos.py`.
+
+O teste dispara simultaneamente `5`, `20` e `50` requisições com `asyncio.gather` e `httpx.ASGITransport`. A aplicação roda em memória, então não é necessário subir servidor externo para a validação.
+
+Para cada quantidade de requisições, o teste exige duas coisas:
+
+1. Todas as respostas precisam retornar status HTTP `200`.
+2. O tempo total precisa ficar abaixo de `3,5` segundos.
+
+## Saída esperada
+
+O fluxo do Tavern deve concluir sem falhas de validação e o teste de performance deve mostrar que a chamada concorrente ao endpoint continua dentro do limite definido.
+
+Na execução completa, o projeto verifica tanto integração com um serviço externo quanto comportamento local da API simulada, sem depender de Uvicorn.
+
 ## Estrutura do projeto
 
 ```text
-.testes_api
+TESTE-API
 ├── api_pagamentos.py
 ├── test_fluxo_todos.tavern.yaml
-├── test_performance.py
+├── test_perfomance.py
 ├── utils.py
 ├── requirements.txt
-├── .gitignore
 └── assets/
-    └── Exercício ATS10.pdf
+	└── Exercício ATS10.pdf
 ```
 
-## Controle de arquivos temporários
+## Observações
 
-O `.gitignore` ignora caches gerados pelo Python e pelo Pytest, incluindo:
-
-- `__pycache__/`
-- `.pytest_cache/`
+- O acesso à internet é necessário para o teste que consulta a JSONPlaceholder.
+- O teste de performance usa a aplicação em memória, então ele roda sem subir servidor adicional.
+- O arquivo `test_perfomance.py` mantém o nome original do repositório.
 
 ## Autor
 
