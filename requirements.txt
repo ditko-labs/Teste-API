@@ -1,0 +1,5 @@
+fastapi
+httpx
+tavern
+pytest
+pytest-asyncio
